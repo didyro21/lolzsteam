@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "bow skeeet",
+  "version": "1.5",
+  "description": "x",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://lzt.market/*"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "tabs",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://lzt.market/*",
+    "https://www.google.com/*",
+    "https://api.wellflow.dev/*"
+  ]
+}

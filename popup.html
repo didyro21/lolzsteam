@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        /* Sleek iOS Base Theme */
+        body { 
+            width: 340px; 
+            padding: 20px; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            text-align: center; 
+            background: linear-gradient(135deg, #0f0f12, #1a1a24); 
+            color: #f5f5f5; 
+            position: relative; 
+            margin: 0;
+        }
+        h3 { margin-top: 0; font-size: 18px; font-weight: 600; color: #fff; letter-spacing: -0.5px; }
+        
+        #status-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 10px 0 5px 0; }
+        #result { font-size: 42px; font-weight: 700; margin: 0; letter-spacing: -1px; }
+        .act-badge { display: none; border: 1px solid #EB6060; color: #EB6060; font-size: 10px; padding: 3px 6px; border-radius: 8px; font-weight: bold; cursor: help; background: rgba(235, 96, 96, 0.1); }
+
+        #amount { font-size: 14px; color: #aaa; font-weight: 500; }
+        #warning { font-size: 12px; color: #FF9800; margin-bottom: 15px; min-height: 14px; font-weight: 500; }
+        
+        /* Pill Buttons */
+        button { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 12px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1); }
+        button:hover { background: rgba(255,255,255,0.15); transform: translateY(-1px); }
+        button:active { transform: translateY(1px); }
+        
+        #mainUi { display: block; }
+        
+        /* Settings UI - Frosted Glass Floating Card */
+        #settingsBtn { position: absolute; top: 12px; right: 12px; background: transparent; border: none; font-size: 18px; padding: 0; cursor: pointer; box-shadow: none; transition: 0.3s; }
+        #settingsBtn:hover { transform: rotate(45deg); background: transparent; }
+        
+        #settingsPanel { 
+            display: none; text-align: left; 
+            background: rgba(30, 30, 35, 0.75); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            padding: 20px; border-radius: 20px; margin-bottom: 15px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative; z-index: 10;
+        }
+        .setting-row { margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; cursor: pointer; font-weight: 500; }
+        .setting-row input { margin-right: 10px; cursor: pointer; accent-color: #64B5F6; width: 16px; height: 16px; }
+        
+        #txList { display: none; text-align: left; margin-top: 15px; max-height: 240px; overflow-y: auto; font-size: 12px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; color: #ddd; }
+        
+        .quick-fix-box { background: rgba(255, 152, 0, 0.05); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 16px; padding: 12px; margin-bottom: 15px; color: #ddd; }
+        .quick-fix-row { margin-top: 10px; display: flex; align-items: center; justify-content: space-between; }
+        
+        .qf-btn { padding: 4px 10px; font-size: 11px; background: #FF9800; color: #000; border: none; font-weight: 700; border-radius: 8px;}
+        .qf-btn:hover { background: #e68a00; }
+        .google-check-btn { padding: 4px 10px; font-size: 11px; background: #4285F4; border: none; font-weight: 700; margin-left: 4px; border-radius: 8px;}
+        .google-check-btn:hover { background: #3367D6; }
+        .copy-btn { padding: 4px 10px; font-size: 11px; background: #00BA78; border: none; font-weight: 700; margin-left: 8px; border-radius: 8px;}
+        .retry-btn { padding: 4px 10px; font-size: 11px; background: #ffa726; color:#000; border: none; font-weight: 700; margin-left: 8px; border-radius: 8px;}
+        .manual-btn { padding: 4px 10px; font-size: 11px; background: #607D8B; border: none; font-weight: 700; margin-left: 4px; color: #fff; border-radius: 8px;}
+        .manual-btn:hover { background: #455A64; }
+        
+        /* AI Analyse Button Styles */
+        .ai-btn-row { display: flex; gap: 8px; width: 100%; margin-bottom: 5px; margin-top: 12px; }
+        .ai-btn { background: linear-gradient(135deg, #673AB7, #8E24AA); color: white; border: none; font-weight: 700; padding: 8px 14px; border-radius: 12px; cursor: pointer; font-size: 12px; flex-grow: 1; transition: 0.3s; box-shadow: 0 4px 12px rgba(103, 58, 183, 0.3); }
+        .ai-btn:hover { background: linear-gradient(135deg, #5E35B1, #7B1FA2); box-shadow: 0 6px 16px rgba(103, 58, 183, 0.4); }
+        .ai-btn:disabled { background: #444; color: #888; cursor: not-allowed; box-shadow: none; }
+        
+        .ai-log-btn { background: rgba(255,255,255,0.08); color: #ccc; border: 1px solid rgba(255,255,255,0.1); font-weight: 600; padding: 8px 12px; border-radius: 12px; cursor: pointer; font-size: 11px; transition: 0.2s; white-space: nowrap; }
+        .ai-log-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+        
+        .ai-log-box { display: none; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; max-height: 180px; overflow-y: auto; font-family: ui-monospace, 'Courier New', monospace; font-size: 10px; color: #a6e22e; text-align: left; margin-bottom: 10px; word-break: break-all; white-space: pre-wrap; }
+
+        .google-result-success { background: linear-gradient(90deg, #e8f5e9, #00e676); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; font-size: 14px; display: inline-block; }
+        .google-result-fail { background: linear-gradient(90deg, #fff176, #ff9800); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; font-size: 13px; display: inline-block; }
+
+        .tx-item { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 10px 0; }
+        .tx-item:last-child { border-bottom: none; }
+        .tx-item b { color: #fff; }
+        .tx-item.uncertain { color: #EB6060; }
+        .tx-item.uncertain b { color: #EB6060; }
+        .tx-math { display: block; margin-top: 6px; }
+        .tx-item:not(.uncertain) .tx-math { color: #e5c07b; }
+        .tx-item .tx-math .replaced { color: #bb86fc !important; font-weight: bold !important; text-shadow: 0 0 4px rgba(187, 134, 252, 0.3); }
+        
+        .edit-btn, .save-btn { padding: 3px 8px; font-size: 10px; margin-left: 6px; background: rgba(255,255,255,0.1); border-radius: 6px; }
+        input[type="number"], input[type="password"], select { background: rgba(0,0,0,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 6px; font-size: 12px; border-radius: 8px; outline: none; transition: 0.2s; }
+        input[type="number"]:focus, input[type="password"]:focus, select:focus { border-color: #64B5F6; background: rgba(0,0,0,0.4); }
+        input[type="number"] { width: 60px; }
+        select { width: 60px; margin-left: 4px; }
+        
+        /* Finder Styles */
+        .finder-btn { background: rgba(183, 58, 58, 0.1); color: #EB6060; border: 1px solid rgba(235, 96, 96, 0.3); font-weight: 700; padding: 10px 14px; border-radius: 14px; cursor: pointer; font-size: 13px; width: 100%; transition: 0.2s; margin-top: 5px; }
+        .finder-btn:hover { background: rgba(235, 96, 96, 0.2); }
+        
+        #tradeBanResults { display: none; text-align: left; margin-top: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        .open-all-btn { background: rgba(0, 186, 120, 0.1); color: #00BA78; border: 1px solid rgba(0, 186, 120, 0.3); font-weight: 700; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-size: 12px; width: 100%; margin-bottom: 12px; transition: 0.2s; }
+        .open-all-btn:hover { background: rgba(0, 186, 120, 0.2); }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.2); border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <button id="settingsBtn" title="Settings">⚙️</button>
+    
+    <div id="settingsPanel">
+        <h4 style="margin-top:0; color:#fff;">Plugin Settings</h4>
+        <label class="setting-row">
+            <input type="checkbox" id="settingAutoScan"> Enable Auto-Scan on Search List
+        </label>
+        <label class="setting-row">
+            <input type="checkbox" id="settingAutoSkip"> Autoskip bulk uploaded accounts
+        </label>
+        <label class="setting-row">
+            <input type="checkbox" id="settingDebug"> Enable Debug Logging (F12 Console)
+        </label>
+        <div style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
+            <label style="font-size: 12px; color: #aaa; display:block; margin-bottom:6px; font-weight:600;">Wellflow API Key:</label>
+            <input type="password" id="settingApiKey" placeholder="sk-..." style="width: 90%;">
+        </div>
+    </div>
+
+    <div id="mainUi">
+        <h3>External Funds Status</h3>
+        <div id="status-row">
+            <div id="result">...</div>
+            <div id="actWarning" class="act-badge" title="Warning: Account had activity within the last 20 days!">ACT</div>
+        </div>
+        <div id="amount">Calculating...</div>
+        <div id="warning"></div>
+        <button id="toggleList" style="display:none; margin-bottom: 10px;">Show Details</button>
+        <div id="txList"></div>
+
+        <!-- Trade Ban Finder Section -->
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+        <button id="findTradeBansBtn" class="finder-btn">🔍 Find Perm Trade Bans on Page</button>
+        
+        <div id="tradeBanResults">
+            <button id="openAllBansBtn" class="open-all-btn" style="display: none;">🌐 Open All in New Tabs</button>
+            <ul id="tradeBanList" style="padding-left: 20px; font-size: 11px; color: #ccc; margin: 0;"></ul>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

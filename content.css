@@ -1,0 +1,114 @@
+.lzt-ext-tag {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #888;
+    vertical-align: middle;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.lzt-ext-tag.safe {
+    border-color: #00BA78;
+    color: #00BA78;
+    background: rgba(0, 186, 120, 0.1);
+}
+
+.lzt-ext-tag.fail {
+    border-color: #EB6060;
+    color: #EB6060;
+    background: rgba(235, 96, 96, 0.1);
+}
+
+.lzt-ext-tag.uncertain {
+    border-color: #FF9800;
+    color: #FF9800;
+    background: rgba(255, 152, 0, 0.1);
+}
+/* New Skipped Tag Style matching the Red/Green tag layout structure */
+.lzt-ext-tag.skipped {
+    border: 1px solid #2b81e3;
+    color: #ffffff;
+    background: rgba(43, 129, 227, 0.2); /* Subtle matching blue tint */
+}
+/* Hide LZT's default background image */
+.bg_img {
+    display: none !important;
+}
+
+/* Fix background repetition and scaling */
+body {
+    background-image: url('https://i.pinimg.com/736x/53/2b/60/532b60df8beca257dd44f68bf0f56041.jpg') !important;
+    background-size: cover !important; /* Scales the image to fill the screen */
+    background-repeat: no-repeat !important; /* Prevents the image from tiling */
+    background-position: center center !important; /* Keeps the image centered */
+    background-attachment: fixed !important; /* Keeps the background fixed while scrolling */
+}
+
+/* Ensure .xf-main-content doesn't override the body background if it has its own */
+.xf-main-content {
+    background: transparent !important;
+}
+/* Change the top header color */
+#header {
+    background-color: #000000 !important;
+}
+
+/* Change link colors */
+a {
+    color: #c5bfff !important; 
+}
+/* Glassmorphism Theme for Main LZT Blocks */
+#header,
+.menuBlock,
+.SearchHistoryList,
+.SavedSearchesList,
+.categoryLinks,
+.searchBar,
+.sidebar,
+.uix_sidebarInner,
+.secondaryContent,
+.marketSidebarMenu,
+/* New targeting for Account View pages */
+.marketItemViewHeadContent,
+.marketItemView--AfterTabs,
+.marketItemView--counters,
+.marketItemView--comments,
+.marketIndexItem {
+    /* Slightly darker and more transparent for the glassy look */
+    background-color: rgba(20, 20, 25, 0.45) !important; 
+    
+    /* Stronger blur for that frosted glass vibe */
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    
+    /* Subtle rounded edges to match the iOS 26 vibe */
+    border: 1px solid rgba(255, 255, 255, 0.08) !important; 
+    border-radius: 16px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Ensure inner containers don't conflict with the glass background */
+.marketItemViewHeadContent, .marketItemView--AfterTabs {
+    padding: 20px !important; /* Adds breathing room for the glass effect */
+}
+
+/* Remove default LZT solid backgrounds that block the glass effect */
+.marketIndexItem,
+.sidebar .section,
+.sidebar .widget,
+.sidebar .widget-container {
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Make the "Back to top" button transparent */
+button.cd-top {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+}
