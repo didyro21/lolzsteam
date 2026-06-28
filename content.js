@@ -1,4 +1,4 @@
-let settings = { autoScan: true, debugMode: false, autoSkip: false };
+let settings = { autoScan: true, debugMode: false, autoSkip: false, showInv: true };
 
 function debugLog(...args) {
     if (settings.debugMode) {
@@ -6,11 +6,11 @@ function debugLog(...args) {
     }
 }
 
-// 1. Read Settings & Initialize
-chrome.storage.local.get(['autoScan', 'debugMode', 'autoSkip'], (res) => {
+chrome.storage.local.get(['autoScan', 'debugMode', 'autoSkip', 'showInv'], (res) => {
     if (res.autoScan !== undefined) settings.autoScan = res.autoScan;
     if (res.debugMode !== undefined) settings.debugMode = res.debugMode;
     if (res.autoSkip !== undefined) settings.autoSkip = res.autoSkip;
+    if (res.showInv !== undefined) settings.showInv = res.showInv;
 
     debugLog("Settings loaded:", settings);
 
@@ -45,7 +45,8 @@ async function processQueue() {
         while (queue.length > 0) {
             const item = queue.shift();
             await fetchAndTagItem(item);
-            await new Promise(r => setTimeout(r, 600)); 
+            // Wait 800ms to allow dual-fetching safely
+            await new Promise(r => setTimeout(r, 800)); 
         }
     } catch (err) {
         debugLog("Queue processing error:", err);
@@ -54,7 +55,6 @@ async function processQueue() {
     }
 }
 
-// 2. Setup function (Removed broken Scroll Observer, directly queues!)
 function setupListings(node = document) {
     const listings = node.querySelectorAll('.marketIndexItem');
 
@@ -62,6 +62,9 @@ function setupListings(node = document) {
         const titleLink = item.querySelector('a.marketIndexItem--Title, a.marketIndexItem--title, .marketIndexItem--TitleData a, .similar-title');
         
         if (titleLink && !item.querySelector('.lzt-ext-tag')) {
+            // Apply position relative to the main card so we can absolute-position the floating box
+            item.style.position = 'relative';
+            
             const tag = document.createElement('span');
             tag.className = 'lzt-ext-tag';
             
@@ -99,12 +102,9 @@ function setupListings(node = document) {
                 tag.textContent = 'Skipped (Bulk)';
                 tag.classList.add('skipped');
                 titleLink.insertAdjacentElement('afterend', tag);
-                debugLog("Skipped bulk item:", titleLink.innerText);
             } else {
                 tag.textContent = '⏳ Waiting...';
                 titleLink.insertAdjacentElement('afterend', tag);
-                
-                // Directly toss it into the queue! No more waiting for scroll interactions.
                 enqueueItem(item);
             }
         }
@@ -129,41 +129,74 @@ async function fetchAndTagItem(item) {
     if (!tag || !titleLink) return;
     
     tag.textContent = '🔍 Scanning...';
-    debugLog(`Scanning URL: ${titleLink.href}`);
     
     try {
         const url = titleLink.href;
+        
+        // 1. Base Item Page Fetch
         const response = await fetch(url);
         const html = await response.text();
-        
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
+        const doc = new DOMParser().parseFromString(html, 'text/html');
         const result = parseLZTDocument(doc);
         
         if (result.error) {
             tag.textContent = "N/A";
-            debugLog(`Scan Error: ${result.error}`);
             return;
         }
 
-        const total = result.totalUSD;
-        tag.textContent = `Ext: $${total.toFixed(2)}`;
-        
+        tag.textContent = `Ext: $${result.totalUSD.toFixed(2)}`;
         if (result.hasUncertain) {
             tag.classList.add('uncertain');
             tag.textContent += ' ⚠️';
-        } else if (total > 350) {
+        } else if (result.totalUSD > 350) {
             tag.classList.add('safe');
         } else {
             tag.classList.add('fail');
         }
 
-        debugLog(`Scan Complete: $${total.toFixed(2)}`);
+        // 2. Fetch Detailed Inventory IF Setting is ON
+        if (settings.showInv) {
+            try {
+                const invUrl = `https://lzt.market/steam-value/?app_id=730&link=${encodeURIComponent(url)}`;
+                const invRes = await fetch(invUrl);
+                const invHtml = await invRes.text();
+                const invDoc = new DOMParser().parseFromString(invHtml, 'text/html');
+                
+                let parsedItems = [];
+                const itemNodes = invDoc.querySelectorAll('.lztSv--item');
+                
+                itemNodes.forEach(node => {
+                    const prefixNode = node.querySelector('.lztSv_game_cs2_name_item');
+                    const nameNode = node.querySelector('.lztSv_link--item-new');
+                    let itemName = "";
+                    if (prefixNode && nameNode) itemName = `${prefixNode.innerText.trim()} ${nameNode.innerText.trim()}`;
+                    else if (nameNode) itemName = nameNode.innerText.trim();
+                    
+                    if (itemName) parsedItems.push(itemName);
+                });
+
+                if (parsedItems.length > 0) {
+                    const valNode = invDoc.querySelector('.LztSvResult--totalValue .Value');
+                    const totalValue = valNode ? valNode.innerText.trim() : '0';
+                    
+                    const top5 = parsedItems.slice(0, 5);
+                    const remaining = itemNodes.length - top5.length;
+                    
+                    const invBox = document.createElement('div');
+                    invBox.className = 'lzt-ext-inv-box';
+                    invBox.innerHTML = `<b>inv:</b> ${top5.join(', ')}` + 
+                        (remaining > 0 ? `, + ${remaining} more items` : '') + 
+                        `<br><b style="color:#a6e22e; display:block; margin-top:4px;">(TOTAL ${totalValue})</b>`;
+                        
+                    item.appendChild(invBox);
+                }
+            } catch (invErr) {
+                debugLog("Failed to fetch steam-value page:", invErr);
+            }
+        }
 
     } catch (e) {
         tag.textContent = 'Error';
-        debugLog("Network or parsing error", e);
     }
 }
 
@@ -260,6 +293,6 @@ function parseLZTDocument(doc) {
         }
     });
 
-    if (foundTransactions === 0) return { error: "No valid amounts" };
+    if (foundTransactions === 0) return { totalUSD: 0, hasUncertain: hasUncertain };
     return { totalUSD: totalUSD, hasUncertain: hasUncertain };
 }

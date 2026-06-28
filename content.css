@@ -112,3 +112,23 @@ button.cd-top {
     box-shadow: none !important;
     border: none !important;
 }
+/* Floating Inventory Box (Top 5 Items) */
+.lzt-ext-inv-box {
+    position: absolute;
+    right: 15px;
+    top: 45px; 
+    max-width: 250px;
+    font-size: 11px;
+    color: #e0e0e0;
+    background: rgba(30, 30, 35, 0.75) !important;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    line-height: 1.4;
+    text-align: right;
+    z-index: 10;
+    pointer-events: none; /* Allows you to click the background item link without the box blocking it */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
