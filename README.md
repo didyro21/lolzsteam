@@ -2,7 +2,7 @@
 
 a browser extension designed  for **lzt.market**. This extension adds a lot of tools for resellers / account buyers 
 ---
-[preview](https://i.imgur.com/JpQHMbK.png)
+![preview](https://i.imgur.com/JpQHMbK.png)
 ##  How it works 
 
 ###  1. AI currency audit engine
