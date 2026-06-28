@@ -315,8 +315,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // If not on an account page, just quietly fail the transaction parsing part
         // The Trade Ban Scanner will still work on the search page!
         if (tab.url.includes("lzt.market") && !tab.url.includes("lzt.market/steam") && !tab.url.includes("lzt.market/item")) {
-             document.getElementById('result').textContent = "Search Mode";
-             document.getElementById('amount').textContent = "Use the scanner below.";
+             document.getElementById('result').textContent = "Hello!";
+             document.getElementById('amount').textContent = "You are on search list page.";
         }
     }
 });
